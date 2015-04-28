@@ -36,55 +36,28 @@
 package jsr166e;
 
 /**
- * Exception thrown when an error or other exception is encountered
- * in the course of completing a result or task.
+ * Exception indicating that the result of a value-producing task,
+ * such as a {@link FutureTask}, cannot be retrieved because the task
+ * was cancelled.
  *
- * @since 1.8
+ * @since 1.5
  * @author Doug Lea
  */
-public class CompletionException extends RuntimeException {
-    private static final long serialVersionUID = 7830266012832686185L;
+public class CancellationException extends IllegalStateException {
+    private static final long serialVersionUID = -9202173006928992231L;
 
     /**
-     * Constructs a {@code CompletionException} with no detail message.
-     * The cause is not initialized, and may subsequently be
-     * initialized by a call to {@link #initCause(Throwable) initCause}.
+     * Constructs a {@code CancellationException} with no detail message.
      */
-    protected CompletionException() { }
+    public CancellationException() {}
 
     /**
-     * Constructs a {@code CompletionException} with the specified detail
-     * message. The cause is not initialized, and may subsequently be
-     * initialized by a call to {@link #initCause(Throwable) initCause}.
+     * Constructs a {@code CancellationException} with the specified detail
+     * message.
      *
      * @param message the detail message
      */
-    protected CompletionException(String message) {
+    public CancellationException(String message) {
         super(message);
-    }
-
-    /**
-     * Constructs a {@code CompletionException} with the specified detail
-     * message and cause.
-     *
-     * @param  message the detail message
-     * @param  cause the cause (which is saved for later retrieval by the
-     *         {@link #getCause()} method)
-     */
-    public CompletionException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     * Constructs a {@code CompletionException} with the specified cause.
-     * The detail message is set to {@code (cause == null ? null :
-     * cause.toString())} (which typically contains the class and
-     * detail message of {@code cause}).
-     *
-     * @param  cause the cause (which is saved for later retrieval by the
-     *         {@link #getCause()} method)
-     */
-    public CompletionException(Throwable cause) {
-        super(cause);
     }
 }

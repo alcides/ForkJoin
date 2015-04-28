@@ -33,66 +33,54 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package jsr166e;
+package jsr166e.locks;
 
 /**
- * A recursive result-bearing {@link ForkJoinTask}.
+ * A synchronizer that may be exclusively owned by a thread.  This
+ * class provides a basis for creating locks and related synchronizers
+ * that may entail a notion of ownership.  The
+ * {@code AbstractOwnableSynchronizer} class itself does not manage or
+ * use this information. However, subclasses and tools may use
+ * appropriately maintained values to help control and monitor access
+ * and provide diagnostics.
  *
- * <p>For a classic example, here is a task computing Fibonacci numbers:
- *
- *  <pre> {@code
- * class Fibonacci extends RecursiveTask<Integer> {
- *   final int n;
- *   Fibonacci(int n) { this.n = n; }
- *   Integer compute() {
- *     if (n <= 1)
- *       return n;
- *     Fibonacci f1 = new Fibonacci(n - 1);
- *     f1.fork();
- *     Fibonacci f2 = new Fibonacci(n - 2);
- *     return f2.compute() + f1.join();
- *   }
- * }}</pre>
- *
- * However, besides being a dumb way to compute Fibonacci functions
- * (there is a simple fast linear algorithm that you'd use in
- * practice), this is likely to perform poorly because the smallest
- * subtasks are too small to be worthwhile splitting up. Instead, as
- * is the case for nearly all fork/join applications, you'd pick some
- * minimum granularity size (for example 10 here) for which you always
- * sequentially solve rather than subdividing.
- *
- * @since 1.7
+ * @since 1.6
  * @author Doug Lea
  */
-public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
-    private static final long serialVersionUID = 5232453952276485270L;
+public abstract class AbstractOwnableSynchronizer
+    implements java.io.Serializable {
+
+    /** Use serial ID even though all fields transient. */
+    private static final long serialVersionUID = 3737899427754241961L;
 
     /**
-     * The result of the computation.
+     * Empty constructor for use by subclasses.
      */
-    V result;
+    protected AbstractOwnableSynchronizer() { }
 
     /**
-     * The main computation performed by this task.
-     * @return the result of the computation
+     * The current owner of exclusive mode synchronization.
      */
-    protected abstract V compute();
+    private transient Thread exclusiveOwnerThread;
 
-    public final V getRawResult() {
-        return result;
-    }
-
-    protected final void setRawResult(V value) {
-        result = value;
+    /**
+     * Sets the thread that currently owns exclusive access.
+     * A {@code null} argument indicates that no thread owns access.
+     * This method does not otherwise impose any synchronization or
+     * {@code volatile} field accesses.
+     * @param thread the owner thread
+     */
+    protected final void setExclusiveOwnerThread(Thread thread) {
+        exclusiveOwnerThread = thread;
     }
 
     /**
-     * Implements execution conventions for RecursiveTask.
+     * Returns the thread last set by {@code setExclusiveOwnerThread},
+     * or {@code null} if never set.  This method does not otherwise
+     * impose any synchronization or {@code volatile} field accesses.
+     * @return the owner thread
      */
-    protected final boolean exec() {
-        result = compute();
-        return true;
+    protected final Thread getExclusiveOwnerThread() {
+        return exclusiveOwnerThread;
     }
-
 }

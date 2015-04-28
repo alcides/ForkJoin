@@ -1,15 +1,43 @@
 /*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ */
+
+/*
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
+ *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package jsr166e;
+package jsr166e.locks;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReadWriteLock;
+import jsr166e.TimeUnit;
+
+
 
 /**
  * A capability-based lock with three modes for controlling read/write
@@ -223,13 +251,10 @@ public class StampedLock implements java.io.Serializable {
      *
      * As noted in Boehm's paper (above), sequence validation (mainly
      * method validate()) requires stricter ordering rules than apply
-     * to normal volatile reads (of "state").  In the absence of (but
-     * continual hope for) explicit JVM support of intrinsics with
-     * double-sided reordering prohibition, or corresponding fence
-     * intrinsics, we for now uncomfortably rely on the fact that the
-     * Unsafe.getXVolatile intrinsic must have this property
-     * (syntactic volatile reads do not) for internal purposes anyway,
-     * even though it is not documented.
+     * to normal volatile reads (of "state").  To force orderings of
+     * reads before a validation and the validation itself in those
+     * cases where this is not already forced, we use
+     * Unsafe.loadFence.
      *
      * The memory layout keeps lock state and queue pointers together
      * (normally on the same cache line). This usually works well for
@@ -499,8 +524,8 @@ public class StampedLock implements java.io.Serializable {
      * since issuance of the given stamp; else false
      */
     public boolean validate(long stamp) {
-        // See above about current use of getLongVolatile here
-        return (stamp & SBITS) == (U.getLongVolatile(this, STATE) & SBITS);
+        U.loadFence();
+        return (stamp & SBITS) == (state & SBITS);
     }
 
     /**
@@ -671,8 +696,8 @@ public class StampedLock implements java.io.Serializable {
      */
     public long tryConvertToOptimisticRead(long stamp) {
         long a = stamp & ABITS, m, s, next; WNode h;
+        U.loadFence();
         for (;;) {
-            s = U.getLongVolatile(this, STATE); // see above
             if (((s = state) & SBITS) != (stamp & SBITS))
                 break;
             if ((m = s & ABITS) == 0L) {
@@ -943,7 +968,7 @@ public class StampedLock implements java.io.Serializable {
                 return s;
             }
         }
-        else if ((ThreadLocalRandom.current().nextInt() &
+        else if ((LockSupport.nextSecondarySeed() &
                   OVERFLOW_YIELD_RATE) == 0)
             Thread.yield();
         return 0L;
@@ -970,7 +995,7 @@ public class StampedLock implements java.io.Serializable {
                  return next;
             }
         }
-        else if ((ThreadLocalRandom.current().nextInt() &
+        else if ((LockSupport.nextSecondarySeed() &
                   OVERFLOW_YIELD_RATE) == 0)
             Thread.yield();
         return 0L;
@@ -1017,7 +1042,7 @@ public class StampedLock implements java.io.Serializable {
             else if (spins < 0)
                 spins = (m == WBIT && wtail == whead) ? SPINS : 0;
             else if (spins > 0) {
-                if (ThreadLocalRandom.current().nextInt() >= 0)
+                if (LockSupport.nextSecondarySeed() >= 0)
                     --spins;
             }
             else if ((p = wtail) == null) { // initialize queue
@@ -1052,7 +1077,7 @@ public class StampedLock implements java.io.Serializable {
                             return ns;
                         }
                     }
-                    else if (ThreadLocalRandom.current().nextInt() >= 0 &&
+                    else if (LockSupport.nextSecondarySeed() >= 0 &&
                              --k <= 0)
                         break;
                 }
@@ -1120,7 +1145,7 @@ public class StampedLock implements java.io.Serializable {
                         return ns;
                     else if (m >= WBIT) {
                         if (spins > 0) {
-                            if (ThreadLocalRandom.current().nextInt() >= 0)
+                            if (LockSupport.nextSecondarySeed() >= 0)
                                 --spins;
                         }
                         else {
@@ -1219,7 +1244,7 @@ public class StampedLock implements java.io.Serializable {
                         return ns;
                     }
                     else if (m >= WBIT &&
-                             ThreadLocalRandom.current().nextInt() >= 0 && --k <= 0)
+                             LockSupport.nextSecondarySeed() >= 0 && --k <= 0)
                         break;
                 }
             }
@@ -1361,7 +1386,7 @@ public class StampedLock implements java.io.Serializable {
 
     static {
         try {
-            U = getUnsafe();
+            U = sun.misc.Unsafe.getUnsafe();
             Class<?> k = StampedLock.class;
             Class<?> wk = WNode.class;
             STATE = U.objectFieldOffset
@@ -1382,36 +1407,6 @@ public class StampedLock implements java.io.Serializable {
 
         } catch (Exception e) {
             throw new Error(e);
-        }
-    }
-
-    /**
-     * Returns a sun.misc.Unsafe.  Suitable for use in a 3rd party package.
-     * Replace with a simple call to Unsafe.getUnsafe when integrating
-     * into a jdk.
-     *
-     * @return a sun.misc.Unsafe
-     */
-    private static sun.misc.Unsafe getUnsafe() {
-        try {
-            return sun.misc.Unsafe.getUnsafe();
-        } catch (SecurityException tryReflectionInstead) {}
-        try {
-            return java.security.AccessController.doPrivileged
-            (new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
-                public sun.misc.Unsafe run() throws Exception {
-                    Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
-                    for (java.lang.reflect.Field f : k.getDeclaredFields()) {
-                        f.setAccessible(true);
-                        Object x = f.get(null);
-                        if (k.isInstance(x))
-                            return k.cast(x);
-                    }
-                    throw new NoSuchFieldError("the Unsafe");
-                }});
-        } catch (java.security.PrivilegedActionException e) {
-            throw new RuntimeException("Could not initialize intrinsics",
-                                       e.getCause());
         }
     }
 }

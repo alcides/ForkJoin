@@ -36,55 +36,31 @@
 package jsr166e;
 
 /**
- * Exception thrown when an error or other exception is encountered
- * in the course of completing a result or task.
+ * Exception thrown when a thread tries to wait upon a barrier that is
+ * in a broken state, or which enters the broken state while the thread
+ * is waiting.
  *
- * @since 1.8
+ * @see CyclicBarrier
+ *
+ * @since 1.5
  * @author Doug Lea
  */
-public class CompletionException extends RuntimeException {
-    private static final long serialVersionUID = 7830266012832686185L;
+public class BrokenBarrierException extends Exception {
+    private static final long serialVersionUID = 7117394618823254244L;
 
     /**
-     * Constructs a {@code CompletionException} with no detail message.
-     * The cause is not initialized, and may subsequently be
-     * initialized by a call to {@link #initCause(Throwable) initCause}.
+     * Constructs a {@code BrokenBarrierException} with no specified detail
+     * message.
      */
-    protected CompletionException() { }
+    public BrokenBarrierException() {}
 
     /**
-     * Constructs a {@code CompletionException} with the specified detail
-     * message. The cause is not initialized, and may subsequently be
-     * initialized by a call to {@link #initCause(Throwable) initCause}.
+     * Constructs a {@code BrokenBarrierException} with the specified
+     * detail message.
      *
      * @param message the detail message
      */
-    protected CompletionException(String message) {
+    public BrokenBarrierException(String message) {
         super(message);
-    }
-
-    /**
-     * Constructs a {@code CompletionException} with the specified detail
-     * message and cause.
-     *
-     * @param  message the detail message
-     * @param  cause the cause (which is saved for later retrieval by the
-     *         {@link #getCause()} method)
-     */
-    public CompletionException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     * Constructs a {@code CompletionException} with the specified cause.
-     * The detail message is set to {@code (cause == null ? null :
-     * cause.toString())} (which typically contains the class and
-     * detail message of {@code cause}).
-     *
-     * @param  cause the cause (which is saved for later retrieval by the
-     *         {@link #getCause()} method)
-     */
-    public CompletionException(Throwable cause) {
-        super(cause);
     }
 }

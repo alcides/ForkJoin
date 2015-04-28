@@ -1,4 +1,33 @@
 /*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ */
+
+/*
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
+ *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
@@ -12,15 +41,15 @@ import java.util.List;
 import java.util.RandomAccess;
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.ReentrantLock;
+import jsr166e.Callable;
+import jsr166e.CancellationException;
+import jsr166e.ExecutionException;
+import jsr166e.Future;
+import jsr166e.RejectedExecutionException;
+import jsr166e.RunnableFuture;
+import jsr166e.TimeUnit;
+import jsr166e.TimeoutException;
+import jsr166e.locks.ReentrantLock;
 import java.lang.reflect.Constructor;
 
 /**
@@ -111,11 +140,11 @@ import java.lang.reflect.Constructor;
  * {@link #isCompletedNormally} is true if a task completed without
  * cancellation or encountering an exception; {@link #isCancelled} is
  * true if the task was cancelled (in which case {@link #getException}
- * returns a {@link java.util.concurrent.CancellationException}); and
+ * returns a {@link jsr166e.CancellationException}); and
  * {@link #isCompletedAbnormally} is true if a task was either
  * cancelled or encountered an exception, in which case {@link
  * #getException} will return either the encountered exception or
- * {@link java.util.concurrent.CancellationException}.
+ * {@link jsr166e.CancellationException}.
  *
  * <p>The ForkJoinTask class is not usually directly subclassed.
  * Instead, you subclass one of the abstract classes that support a
@@ -134,7 +163,7 @@ import java.lang.reflect.Constructor;
  * (DAG). Otherwise, executions may encounter a form of deadlock as
  * tasks cyclically wait for each other.  However, this framework
  * supports other methods and techniques (for example the use of
- * {@link java.util.concurrent.Phaser Phaser}, {@link #helpQuiesce}, and {@link #complete}) that
+ * {@link Phaser}, {@link #helpQuiesce}, and {@link #complete}) that
  * may be of use in constructing custom subclasses for problems that
  * are not statically structured as DAGs. To support such usages, a
  * ForkJoinTask may be atomically <em>tagged</em> with a {@code short}
@@ -289,7 +318,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         if ((s = status) >= 0) {
             if (cp != null) {
                 if (this instanceof CountedCompleter)
-                    s = cp.externalHelpComplete((CountedCompleter<?>)this);
+                    s = cp.externalHelpComplete((CountedCompleter<?>)this, Integer.MAX_VALUE);
                 else if (cp.tryExternalUnpush(this))
                     s = doExec();
             }
@@ -327,7 +356,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             throw new InterruptedException();
         if ((s = status) >= 0 && cp != null) {
             if (this instanceof CountedCompleter)
-                cp.externalHelpComplete((CountedCompleter<?>)this);
+                cp.externalHelpComplete((CountedCompleter<?>)this, Integer.MAX_VALUE);
             else if (cp.tryExternalUnpush(this))
                 doExec();
         }
@@ -343,7 +372,6 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         }
         return s;
     }
-
 
     /**
      * Implementation for join, get, quietlyJoin. Directly handles
@@ -576,9 +604,6 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     /**
      * Poll stale refs and remove them. Call only while holding lock.
      */
-    /**
-     * Poll stale refs and remove them. Call only while holding lock.
-     */
     private static void expungeStaleExceptions() {
         for (Object x; (x = exceptionTableRefQueue.poll()) != null;) {
             if (x instanceof ExceptionNode) {
@@ -672,50 +697,6 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         return this;
     }
 
-    // TODO: add other mechanisms
-    
-    static Runtime runtime = Runtime.getRuntime();
-	protected boolean shouldFork() {
-		if (System.getenv("MEMLIMIT") != null) {
-			int m = Integer.parseInt(System.getenv("MEMLIMIT"));
-			if (runtime.totalMemory() / (float)runtime.maxMemory() >= m/100.0) return false;
-		}
-		
-		String cutoff = System.getenv("CUTOFF"); 
-		if (cutoff != null) {
-			if (cutoff.equalsIgnoreCase("maxtasks")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return ForkJoinTask.getPool().getQueuedTaskCount() < (c*Runtime.getRuntime().availableProcessors());
-			} else if (cutoff.equalsIgnoreCase("maxlevel")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return ForkJoinPool.getDepth() < c;
-			} else if (cutoff.equalsIgnoreCase("atc")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				int d = Integer.parseInt(System.getenv("D"));
-				return ForkJoinTask.getPool().getQueuedTaskCount() < (c*Runtime.getRuntime().availableProcessors()) &&
-						ForkJoinPool.getDepth() < d;
-			} else if (cutoff.equalsIgnoreCase("maxtasksinqueue")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return RecursiveAction.getQueuedTaskCount() < c;
-			} else if (cutoff.equalsIgnoreCase("surplus")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return ForkJoinPool.getSurplusQueuedTaskCount() <= c;
-			} else if (cutoff.equalsIgnoreCase("ss")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return Thread.currentThread().getStackTrace().length < c;
-			} else if (cutoff.equalsIgnoreCase("mss")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				int ss = Integer.parseInt(System.getenv("SS"));
-				if (Thread.currentThread().getStackTrace().length > ss) return false;
-				return ForkJoinTask.getPool().getQueuedTaskCount() < c;
-			}
-			return true;
-		} else {
-			return true;
-		}
-	}
-    
-    
     /**
      * Returns the result of the computation when it {@link #isDone is
      * done}.  This method differs from {@link #get()} in that
@@ -1055,7 +1036,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             }
             else if ((cp = ForkJoinPool.common) != null) {
                 if (this instanceof CountedCompleter)
-                    cp.externalHelpComplete((CountedCompleter<?>)this);
+                    cp.externalHelpComplete((CountedCompleter<?>)this, Integer.MAX_VALUE);
                 else if (cp.tryExternalUnpush(this))
                     doExec();
             }
@@ -1557,7 +1538,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         exceptionTableRefQueue = new ReferenceQueue<Object>();
         exceptionTable = new ExceptionNode[EXCEPTION_MAP_CAPACITY];
         try {
-            U = getUnsafe();
+            U = sun.misc.Unsafe.getUnsafe();
             Class<?> k = ForkJoinTask.class;
             STATUS = U.objectFieldOffset
                 (k.getDeclaredField("status"));
@@ -1566,33 +1547,4 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         }
     }
 
-    /**
-     * Returns a sun.misc.Unsafe.  Suitable for use in a 3rd party package.
-     * Replace with a simple call to Unsafe.getUnsafe when integrating
-     * into a jdk.
-     *
-     * @return a sun.misc.Unsafe
-     */
-    private static sun.misc.Unsafe getUnsafe() {
-        try {
-            return sun.misc.Unsafe.getUnsafe();
-        } catch (SecurityException tryReflectionInstead) {}
-        try {
-            return java.security.AccessController.doPrivileged
-            (new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
-                public sun.misc.Unsafe run() throws Exception {
-                    Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
-                    for (java.lang.reflect.Field f : k.getDeclaredFields()) {
-                        f.setAccessible(true);
-                        Object x = f.get(null);
-                        if (k.isInstance(x))
-                            return k.cast(x);
-                    }
-                    throw new NoSuchFieldError("the Unsafe");
-                }});
-        } catch (java.security.PrivilegedActionException e) {
-            throw new RuntimeException("Could not initialize intrinsics",
-                                       e.getCause());
-        }
-    }
 }

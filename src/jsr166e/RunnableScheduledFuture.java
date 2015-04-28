@@ -36,63 +36,23 @@
 package jsr166e;
 
 /**
- * A recursive result-bearing {@link ForkJoinTask}.
- *
- * <p>For a classic example, here is a task computing Fibonacci numbers:
- *
- *  <pre> {@code
- * class Fibonacci extends RecursiveTask<Integer> {
- *   final int n;
- *   Fibonacci(int n) { this.n = n; }
- *   Integer compute() {
- *     if (n <= 1)
- *       return n;
- *     Fibonacci f1 = new Fibonacci(n - 1);
- *     f1.fork();
- *     Fibonacci f2 = new Fibonacci(n - 2);
- *     return f2.compute() + f1.join();
- *   }
- * }}</pre>
- *
- * However, besides being a dumb way to compute Fibonacci functions
- * (there is a simple fast linear algorithm that you'd use in
- * practice), this is likely to perform poorly because the smallest
- * subtasks are too small to be worthwhile splitting up. Instead, as
- * is the case for nearly all fork/join applications, you'd pick some
- * minimum granularity size (for example 10 here) for which you always
- * sequentially solve rather than subdividing.
- *
- * @since 1.7
+ * A {@link ScheduledFuture} that is {@link Runnable}. Successful
+ * execution of the {@code run} method causes completion of the
+ * {@code Future} and allows access to its results.
+ * @see FutureTask
+ * @see Executor
+ * @since 1.6
  * @author Doug Lea
+ * @param <V> The result type returned by this Future's {@code get} method
  */
-public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
-    private static final long serialVersionUID = 5232453952276485270L;
+public interface RunnableScheduledFuture<V> extends RunnableFuture<V>, ScheduledFuture<V> {
 
     /**
-     * The result of the computation.
+     * Returns {@code true} if this task is periodic. A periodic task may
+     * re-run according to some schedule. A non-periodic task can be
+     * run only once.
+     *
+     * @return {@code true} if this task is periodic
      */
-    V result;
-
-    /**
-     * The main computation performed by this task.
-     * @return the result of the computation
-     */
-    protected abstract V compute();
-
-    public final V getRawResult() {
-        return result;
-    }
-
-    protected final void setRawResult(V value) {
-        result = value;
-    }
-
-    /**
-     * Implements execution conventions for RecursiveTask.
-     */
-    protected final boolean exec() {
-        result = compute();
-        return true;
-    }
-
+    boolean isPeriodic();
 }

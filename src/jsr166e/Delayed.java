@@ -36,63 +36,25 @@
 package jsr166e;
 
 /**
- * A recursive result-bearing {@link ForkJoinTask}.
+ * A mix-in style interface for marking objects that should be
+ * acted upon after a given delay.
  *
- * <p>For a classic example, here is a task computing Fibonacci numbers:
+ * <p>An implementation of this interface must define a
+ * {@code compareTo} method that provides an ordering consistent with
+ * its {@code getDelay} method.
  *
- *  <pre> {@code
- * class Fibonacci extends RecursiveTask<Integer> {
- *   final int n;
- *   Fibonacci(int n) { this.n = n; }
- *   Integer compute() {
- *     if (n <= 1)
- *       return n;
- *     Fibonacci f1 = new Fibonacci(n - 1);
- *     f1.fork();
- *     Fibonacci f2 = new Fibonacci(n - 2);
- *     return f2.compute() + f1.join();
- *   }
- * }}</pre>
- *
- * However, besides being a dumb way to compute Fibonacci functions
- * (there is a simple fast linear algorithm that you'd use in
- * practice), this is likely to perform poorly because the smallest
- * subtasks are too small to be worthwhile splitting up. Instead, as
- * is the case for nearly all fork/join applications, you'd pick some
- * minimum granularity size (for example 10 here) for which you always
- * sequentially solve rather than subdividing.
- *
- * @since 1.7
+ * @since 1.5
  * @author Doug Lea
  */
-public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
-    private static final long serialVersionUID = 5232453952276485270L;
+public interface Delayed extends Comparable<Delayed> {
 
     /**
-     * The result of the computation.
+     * Returns the remaining delay associated with this object, in the
+     * given time unit.
+     *
+     * @param unit the time unit
+     * @return the remaining delay; zero or negative values indicate
+     * that the delay has already elapsed
      */
-    V result;
-
-    /**
-     * The main computation performed by this task.
-     * @return the result of the computation
-     */
-    protected abstract V compute();
-
-    public final V getRawResult() {
-        return result;
-    }
-
-    protected final void setRawResult(V value) {
-        result = value;
-    }
-
-    /**
-     * Implements execution conventions for RecursiveTask.
-     */
-    protected final boolean exec() {
-        result = compute();
-        return true;
-    }
-
+    long getDelay(TimeUnit unit);
 }

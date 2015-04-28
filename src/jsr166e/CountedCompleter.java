@@ -1,4 +1,33 @@
 /*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ */
+
+/*
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
+ *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
@@ -25,8 +54,8 @@ package jsr166e;
  * decremented; otherwise, the completion action is performed, and if
  * this completer itself has a completer, the process is continued
  * with its completer.  As is the case with related synchronization
- * components such as {@link java.util.concurrent.Phaser Phaser} and
- * {@link java.util.concurrent.Semaphore Semaphore}, these methods
+ * components such as {@link jsr166e.Phaser Phaser} and
+ * {@link jsr166e.Semaphore Semaphore}, these methods
  * affect only internal counts; they do not establish any further
  * internal bookkeeping. In particular, the identities of pending
  * tasks are not maintained. As illustrated below, you can create
@@ -186,7 +215,7 @@ package jsr166e;
  * <p><b>Searching.</b> A tree of CountedCompleters can search for a
  * value or property in different parts of a data structure, and
  * report a result in an {@link
- * java.util.concurrent.atomic.AtomicReference AtomicReference} as
+ * jsr166e.atomic.AtomicReference AtomicReference} as
  * soon as one is found. The others can poll the result to avoid
  * unnecessary work. (You could additionally {@linkplain #cancel
  * cancel} other tasks, but it is usually simpler and more efficient
@@ -494,8 +523,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      * @param delta the value to add
      */
     public final void addToPendingCount(int delta) {
-        int c;
-        do {} while (!U.compareAndSwapInt(this, PENDING, c = pending, c+delta));
+        U.getAndAddInt(this, PENDING, delta);
     }
 
     /**
@@ -608,7 +636,6 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
             p.tryComplete();
     }
 
-
     /**
      * If this task's pending count is zero, returns this task;
      * otherwise decrements its pending count and returns {@code
@@ -667,6 +694,26 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     }
 
     /**
+     * If this task has not completed, attempts to process at most the
+     * given number of other unprocessed tasks for which this task is
+     * on the completion path, if any are known to exist.
+     *
+     * @param maxTasks the maximum number of tasks to process.  If
+     *                 less than or equal to zero, then no tasks are
+     *                 processed.
+     */
+    public final void helpComplete(int maxTasks) {
+        Thread t; ForkJoinWorkerThread wt;
+        if (maxTasks > 0 && status >= 0) {
+            if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
+                (wt = (ForkJoinWorkerThread)t).pool.
+                    helpComplete(wt.workQueue, this, maxTasks);
+            else
+                ForkJoinPool.common.externalHelpComplete(this, maxTasks);
+        }
+    }
+
+    /**
      * Supports ForkJoinTask exception propagation.
      */
     void internalPropagateException(Throwable ex) {
@@ -686,7 +733,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     }
 
     /**
-     * Returns the result of the computation.  By default,
+     * Returns the result of the computation. By default
      * returns {@code null}, which is appropriate for {@code Void}
      * actions, but in other cases should be overridden, almost
      * always to return a field or function of a field that
@@ -710,41 +757,11 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     private static final long PENDING;
     static {
         try {
-            U = getUnsafe();
+            U = sun.misc.Unsafe.getUnsafe();
             PENDING = U.objectFieldOffset
                 (CountedCompleter.class.getDeclaredField("pending"));
         } catch (Exception e) {
             throw new Error(e);
-        }
-    }
-
-    /**
-     * Returns a sun.misc.Unsafe.  Suitable for use in a 3rd party package.
-     * Replace with a simple call to Unsafe.getUnsafe when integrating
-     * into a jdk.
-     *
-     * @return a sun.misc.Unsafe
-     */
-    private static sun.misc.Unsafe getUnsafe() {
-        try {
-            return sun.misc.Unsafe.getUnsafe();
-        } catch (SecurityException tryReflectionInstead) {}
-        try {
-            return java.security.AccessController.doPrivileged
-            (new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
-                public sun.misc.Unsafe run() throws Exception {
-                    Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
-                    for (java.lang.reflect.Field f : k.getDeclaredFields()) {
-                        f.setAccessible(true);
-                        Object x = f.get(null);
-                        if (k.isInstance(x))
-                            return k.cast(x);
-                    }
-                    throw new NoSuchFieldError("the Unsafe");
-                }});
-        } catch (java.security.PrivilegedActionException e) {
-            throw new RuntimeException("Could not initialize intrinsics",
-                                       e.getCause());
         }
     }
 }

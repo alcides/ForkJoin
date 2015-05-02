@@ -66,7 +66,10 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * method works in either case, some constructions should be
      * handled at Java level to avoid locking user-visible locks.
      */
-    static final boolean VM_SUPPORTS_LONG_CAS = VMSupportsCS8();
+    
+    
+    
+    static final boolean VM_SUPPORTS_LONG_CAS = UnsafeHelper.VMSupportsCS8();
 
     /**
      * Returns whether underlying JVM supports lockless CompareAndSet

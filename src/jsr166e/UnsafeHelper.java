@@ -20,4 +20,17 @@ public class UnsafeHelper {
 	public static Unsafe getUnsafe() {
 		return unsafe;
 	}
+	
+	public static boolean VMSupportsCS8() {
+		Field f;
+		try {
+			f = java.util.concurrent.atomic.AtomicLong.class.getDeclaredField("VM_SUPPORTS_LONG_CAS");
+			f.setAccessible(true);
+			return (boolean) f.get(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 }

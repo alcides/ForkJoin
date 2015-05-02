@@ -40,8 +40,10 @@ import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.Spliterator;
+
 import jsr166e.atomic.AtomicInteger;
 import jsr166e.atomic.AtomicLong;
+
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
@@ -1086,7 +1088,7 @@ public class ThreadLocalRandom extends Random {
     private static final long SECONDARY;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> tk = Thread.class;
             SEED = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("threadLocalRandomSeed"));

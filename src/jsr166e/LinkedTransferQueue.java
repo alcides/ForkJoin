@@ -40,8 +40,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+
 import jsr166e.TimeUnit;
 import jsr166e.locks.LockSupport;
+
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -544,7 +546,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         private static final long waiterOffset;
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> k = Node.class;
                 itemOffset = UNSAFE.objectFieldOffset
                     (k.getDeclaredField("item"));
@@ -1462,7 +1464,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     private static final long sweepVotesOffset;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = LinkedTransferQueue.class;
             headOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("head"));

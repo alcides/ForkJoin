@@ -70,6 +70,7 @@ public class ForkJoinWorkerThread extends Thread {
      * both here and in the subclass to access and set Thread fields.
      */
 
+	int depth = 0;
     final ForkJoinPool pool;                // the pool this thread works in
     final ForkJoinPool.WorkQueue workQueue; // work-stealing mechanics
 
@@ -191,7 +192,7 @@ public class ForkJoinWorkerThread extends Thread {
     private static final long INHERITEDACCESSCONTROLCONTEXT;
     static {
         try {
-            U = sun.misc.Unsafe.getUnsafe();
+            U = UnsafeHelper.getUnsafe();
             Class<?> tk = Thread.class;
             THREADLOCALS = U.objectFieldOffset
                 (tk.getDeclaredField("threadLocals"));
@@ -251,7 +252,7 @@ public class ForkJoinWorkerThread extends Thread {
          */
         private static ThreadGroup createThreadGroup() {
             try {
-                sun.misc.Unsafe u = sun.misc.Unsafe.getUnsafe();
+                sun.misc.Unsafe u = UnsafeHelper.getUnsafe();
                 Class<?> tk = Thread.class;
                 Class<?> gk = ThreadGroup.class;
                 long tg = u.objectFieldOffset(tk.getDeclaredField("group"));

@@ -1677,7 +1677,7 @@ public class CopyOnWriteArrayList<E>
     private static final long lockOffset;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = CopyOnWriteArrayList.class;
             lockOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("lock"));

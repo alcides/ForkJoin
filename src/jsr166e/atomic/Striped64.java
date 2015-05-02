@@ -36,7 +36,9 @@
 package jsr166e.atomic;
 import java.util.function.LongBinaryOperator;
 import java.util.function.DoubleBinaryOperator;
+
 import jsr166e.ThreadLocalRandom;
+import jsr166e.UnsafeHelper;
 
 /**
  * A package-local class holding common representation and mechanics
@@ -129,7 +131,7 @@ abstract class Striped64 extends Number {
         private static final long valueOffset;
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> ak = Cell.class;
                 valueOffset = UNSAFE.objectFieldOffset
                     (ak.getDeclaredField("value"));
@@ -396,7 +398,7 @@ abstract class Striped64 extends Number {
     private static final long PROBE;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> sk = Striped64.class;
             BASE = UNSAFE.objectFieldOffset
                 (sk.getDeclaredField("base"));

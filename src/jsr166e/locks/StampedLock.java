@@ -36,6 +36,7 @@
 package jsr166e.locks;
 
 import jsr166e.TimeUnit;
+import jsr166e.UnsafeHelper;
 
 
 
@@ -877,7 +878,7 @@ public class StampedLock implements java.io.Serializable {
 
     // view classes
 
-    final class ReadLockView implements Lock {
+    final class ReadLockView implements jsr166e.locks.Lock {
         public void lock() { readLock(); }
         public void lockInterruptibly() throws InterruptedException {
             readLockInterruptibly();
@@ -1386,7 +1387,7 @@ public class StampedLock implements java.io.Serializable {
 
     static {
         try {
-            U = sun.misc.Unsafe.getUnsafe();
+            U = UnsafeHelper.getUnsafe();
             Class<?> k = StampedLock.class;
             Class<?> wk = WNode.class;
             STATE = U.objectFieldOffset

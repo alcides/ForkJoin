@@ -35,6 +35,8 @@
 
 package jsr166e.locks;
 import jsr166e.TimeUnit;
+import jsr166e.UnsafeHelper;
+
 import java.util.Collection;
 
 /**
@@ -1498,7 +1500,7 @@ public class ReentrantReadWriteLock
     private static final long TID_OFFSET;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> tk = Thread.class;
             TID_OFFSET = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("tid"));

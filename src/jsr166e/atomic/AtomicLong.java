@@ -34,8 +34,10 @@
  */
 
 package jsr166e.atomic;
-import java.util.function.LongUnaryOperator;
 import java.util.function.LongBinaryOperator;
+import java.util.function.LongUnaryOperator;
+
+import jsr166e.UnsafeHelper;
 import sun.misc.Unsafe;
 
 /**
@@ -55,7 +57,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 1927816293512124184L;
 
     // setup to use Unsafe.compareAndSwapLong for updates
-    private static final Unsafe unsafe = Unsafe.getUnsafe();
+    private static final Unsafe unsafe = UnsafeHelper.getUnsafe();
     private static final long valueOffset;
 
     /**

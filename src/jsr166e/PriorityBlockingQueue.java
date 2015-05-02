@@ -37,6 +37,7 @@ package jsr166e;
 
 import jsr166e.locks.Condition;
 import jsr166e.locks.ReentrantLock;
+
 import java.util.AbstractQueue;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1032,7 +1033,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     private static final long allocationSpinLockOffset;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = PriorityBlockingQueue.class;
             allocationSpinLockOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("allocationSpinLock"));

@@ -209,7 +209,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
 
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> k = Node.class;
                 itemOffset = UNSAFE.objectFieldOffset
                     (k.getDeclaredField("item"));
@@ -929,7 +929,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     private static final long tailOffset;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = ConcurrentLinkedQueue.class;
             headOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("head"));

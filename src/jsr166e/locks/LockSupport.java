@@ -34,6 +34,7 @@
  */
 
 package jsr166e.locks;
+import jsr166e.UnsafeHelper;
 import sun.misc.Unsafe;
 
 /**
@@ -398,7 +399,7 @@ public class LockSupport {
     private static final long SECONDARY;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> tk = Thread.class;
             parkBlockerOffset = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("parkBlocker"));

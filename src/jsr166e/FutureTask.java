@@ -470,7 +470,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
     private static final long waitersOffset;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = FutureTask.class;
             stateOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("state"));

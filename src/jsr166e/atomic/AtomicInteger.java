@@ -34,8 +34,10 @@
  */
 
 package jsr166e.atomic;
-import java.util.function.IntUnaryOperator;
 import java.util.function.IntBinaryOperator;
+import java.util.function.IntUnaryOperator;
+
+import jsr166e.UnsafeHelper;
 import sun.misc.Unsafe;
 
 /**
@@ -55,7 +57,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
 
     // setup to use Unsafe.compareAndSwapInt for updates
-    private static final Unsafe unsafe = Unsafe.getUnsafe();
+    private static final Unsafe unsafe = UnsafeHelper.getUnsafe();
     private static final long valueOffset;
 
     static {

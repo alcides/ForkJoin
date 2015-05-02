@@ -332,7 +332,7 @@ public class ConcurrentLinkedDeque<E>
 
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> k = Node.class;
                 prevOffset = UNSAFE.objectFieldOffset
                     (k.getDeclaredField("prev"));
@@ -1573,7 +1573,7 @@ public class ConcurrentLinkedDeque<E>
         NEXT_TERMINATOR = new Node<Object>();
         NEXT_TERMINATOR.prev = NEXT_TERMINATOR;
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = ConcurrentLinkedDeque.class;
             headOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("head"));

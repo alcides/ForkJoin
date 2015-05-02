@@ -36,22 +36,17 @@
 package jsr166e;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.reflect.Field;
+import java.security.AccessControlContext;
+import java.security.Permissions;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import jsr166e.AbstractExecutorService;
-import jsr166e.Callable;
-import jsr166e.ExecutorService;
-import jsr166e.Future;
-import jsr166e.RejectedExecutionException;
-import jsr166e.RunnableFuture;
-import jsr166e.ThreadLocalRandom;
-import jsr166e.TimeUnit;
-import java.security.AccessControlContext;
-import java.security.ProtectionDomain;
-import java.security.Permissions;
+
+import sun.misc.Unsafe;
 
 /**
  * An {@link ExecutorService} for running {@link ForkJoinTask}s.
@@ -167,7 +162,7 @@ import java.security.Permissions;
  */
 @sun.misc.Contended
 public class ForkJoinPool extends AbstractExecutorService {
-
+	
     /*
      * Implementation Overview
      *
@@ -899,6 +894,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         final void runTask(ForkJoinTask<?> task) {
             if ((currentSteal = task) != null) {
                 ForkJoinWorkerThread thread;
+                thread = (ForkJoinWorkerThread) Thread.currentThread();
                 task.doExec();
                 ForkJoinTask<?>[] a = array;
                 int md = mode;
@@ -1076,7 +1072,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         private static final int ASHIFT;
         static {
             try {
-                U = sun.misc.Unsafe.getUnsafe();
+                U = UnsafeHelper.getUnsafe();
                 Class<?> k = WorkQueue.class;
                 Class<?> ak = ForkJoinTask[].class;
                 QBASE = U.objectFieldOffset
@@ -3254,7 +3250,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     static {
         // initialize field offsets for CAS etc
         try {
-            U = sun.misc.Unsafe.getUnsafe();
+            U = UnsafeHelper.getUnsafe();
             Class<?> k = ForkJoinPool.class;
             CTL = U.objectFieldOffset
                 (k.getDeclaredField("ctl"));

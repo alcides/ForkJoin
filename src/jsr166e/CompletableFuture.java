@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.BiFunction;
+
 import jsr166e.Future;
 import jsr166e.TimeUnit;
 import jsr166e.ForkJoinPool;
@@ -2997,7 +2998,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     private static final long COMPLETIONS;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = CompletableFuture.class;
             RESULT = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("result"));

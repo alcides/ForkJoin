@@ -1150,7 +1150,7 @@ public class Phaser {
     private static final long stateOffset;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = Phaser.class;
             stateOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("state"));

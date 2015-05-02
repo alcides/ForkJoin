@@ -52,8 +52,10 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.Spliterator;
+
 import jsr166e.ConcurrentMap;
 import jsr166e.ConcurrentNavigableMap;
+
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.BiConsumer;
@@ -541,7 +543,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
 
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> k = Node.class;
                 valueOffset = UNSAFE.objectFieldOffset
                     (k.getDeclaredField("value"));
@@ -621,7 +623,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         private static final long rightOffset;
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> k = Index.class;
                 rightOffset = UNSAFE.objectFieldOffset
                     (k.getDeclaredField("right"));
@@ -3583,7 +3585,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     private static final long SECONDARY;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = ConcurrentSkipListMap.class;
             headOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("head"));

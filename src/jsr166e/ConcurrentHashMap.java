@@ -51,11 +51,13 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Spliterator;
+
 import jsr166e.ConcurrentMap;
 import jsr166e.ForkJoinPool;
 import jsr166e.atomic.AtomicReference;
 import jsr166e.locks.LockSupport;
 import jsr166e.locks.ReentrantLock;
+
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -3244,7 +3246,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         private static final long LOCKSTATE;
         static {
             try {
-                U = sun.misc.Unsafe.getUnsafe();
+                U = UnsafeHelper.getUnsafe();
                 Class<?> k = TreeBin.class;
                 LOCKSTATE = U.objectFieldOffset
                     (k.getDeclaredField("lockState"));
@@ -6286,7 +6288,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     static {
         try {
-            U = sun.misc.Unsafe.getUnsafe();
+            U = UnsafeHelper.getUnsafe();
             Class<?> k = ConcurrentHashMap.class;
             SIZECTL = U.objectFieldOffset
                 (k.getDeclaredField("sizeCtl"));

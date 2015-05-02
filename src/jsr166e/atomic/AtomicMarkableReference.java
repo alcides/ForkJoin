@@ -35,6 +35,8 @@
 
 package jsr166e.atomic;
 
+import jsr166e.UnsafeHelper;
+
 /**
  * An {@code AtomicMarkableReference} maintains an object reference
  * along with a mark bit, that can be updated atomically.
@@ -190,7 +192,7 @@ public class AtomicMarkableReference<V> {
 
     // Unsafe mechanics
 
-    private static final sun.misc.Unsafe UNSAFE = sun.misc.Unsafe.getUnsafe();
+    private static final sun.misc.Unsafe UNSAFE = UnsafeHelper.getUnsafe();
     private static final long pairOffset =
         objectFieldOffset(UNSAFE, "pair", AtomicMarkableReference.class);
 

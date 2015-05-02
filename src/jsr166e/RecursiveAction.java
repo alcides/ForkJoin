@@ -163,6 +163,7 @@ package jsr166e;
  * @author Doug Lea
  */
 public abstract class RecursiveAction extends ForkJoinTask<Void> {
+	
     private static final long serialVersionUID = 5232453952276485070L;
 
     /**
@@ -186,6 +187,7 @@ public abstract class RecursiveAction extends ForkJoinTask<Void> {
      * Implements execution conventions for RecursiveActions.
      */
     protected final boolean exec() {
+    	depthc.set(depth+1);
         compute();
         return true;
     }

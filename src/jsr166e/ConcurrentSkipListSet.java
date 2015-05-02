@@ -515,7 +515,7 @@ public class ConcurrentSkipListSet<E>
     private static final long mapOffset;
     static {
         try {
-            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            UNSAFE = UnsafeHelper.getUnsafe();
             Class<?> k = ConcurrentSkipListSet.class;
             mapOffset = UNSAFE.objectFieldOffset
                 (k.getDeclaredField("m"));

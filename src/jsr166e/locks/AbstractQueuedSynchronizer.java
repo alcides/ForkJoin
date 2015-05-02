@@ -35,9 +35,12 @@
 
 package jsr166e.locks;
 import jsr166e.TimeUnit;
+import jsr166e.UnsafeHelper;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+
 import sun.misc.Unsafe;
 
 /**
@@ -2257,7 +2260,7 @@ public abstract class AbstractQueuedSynchronizer
      * are at it, we do the same for other CASable fields (which could
      * otherwise be done with atomic field updaters).
      */
-    private static final Unsafe unsafe = Unsafe.getUnsafe();
+    private static final Unsafe unsafe = UnsafeHelper.getUnsafe();
     private static final long stateOffset;
     private static final long headOffset;
     private static final long tailOffset;

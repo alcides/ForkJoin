@@ -37,9 +37,8 @@
 package jsr166e;
 import jsr166e.locks.LockSupport;
 import jsr166e.locks.ReentrantLock;
+
 import java.util.*;
-import java.util.Spliterator;
-import java.util.Spliterators;
 
 /**
  * A {@linkplain BlockingQueue blocking queue} in which each insert
@@ -287,7 +286,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
 
             static {
                 try {
-                    UNSAFE = sun.misc.Unsafe.getUnsafe();
+                    UNSAFE = UnsafeHelper.getUnsafe();
                     Class<?> k = SNode.class;
                     matchOffset = UNSAFE.objectFieldOffset
                         (k.getDeclaredField("match"));
@@ -512,7 +511,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         private static final long headOffset;
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> k = TransferStack.class;
                 headOffset = UNSAFE.objectFieldOffset
                     (k.getDeclaredField("head"));
@@ -582,7 +581,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
 
             static {
                 try {
-                    UNSAFE = sun.misc.Unsafe.getUnsafe();
+                    UNSAFE = UnsafeHelper.getUnsafe();
                     Class<?> k = QNode.class;
                     itemOffset = UNSAFE.objectFieldOffset
                         (k.getDeclaredField("item"));
@@ -825,7 +824,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         private static final long cleanMeOffset;
         static {
             try {
-                UNSAFE = sun.misc.Unsafe.getUnsafe();
+                UNSAFE = UnsafeHelper.getUnsafe();
                 Class<?> k = TransferQueue.class;
                 headOffset = UNSAFE.objectFieldOffset
                     (k.getDeclaredField("head"));

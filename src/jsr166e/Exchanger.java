@@ -637,7 +637,7 @@ public class Exchanger<V> {
     static {
         int s;
         try {
-            U = sun.misc.Unsafe.getUnsafe();
+            U = UnsafeHelper.getUnsafe();
             Class<?> ek = Exchanger.class;
             Class<?> nk = Node.class;
             Class<?> ak = Node[].class;

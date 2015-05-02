@@ -2180,7 +2180,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * not very good under current signalling scheme, and should be
      * improved.
      */
-    static int getSurplusQueuedTaskCount() {
+    public static int getSurplusQueuedTaskCount() {
         Thread t; ForkJoinWorkerThread wt; ForkJoinPool pool; WorkQueue q;
         if (((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)) {
             int p = (pool = (wt = (ForkJoinWorkerThread)t).pool).parallelism;

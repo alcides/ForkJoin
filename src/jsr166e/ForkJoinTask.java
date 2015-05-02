@@ -36,23 +36,16 @@
 package jsr166e;
 
 import java.io.Serializable;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 import java.util.RandomAccess;
-import java.lang.ref.WeakReference;
-import java.lang.ref.ReferenceQueue;
 
-import jsr166e.Callable;
-import jsr166e.CancellationException;
-import jsr166e.ExecutionException;
-import jsr166e.Future;
-import jsr166e.RejectedExecutionException;
-import jsr166e.RunnableFuture;
-import jsr166e.TimeUnit;
-import jsr166e.TimeoutException;
-import jsr166e.locks.ReentrantLock;
-
-import java.lang.reflect.Constructor;
+import jsr166e.cutoffs.CutoffMechanism;
+import jsr166e.cutoffs.CutoffMechanismFactory;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Abstract base class for tasks that run within a {@link ForkJoinPool}.
@@ -687,45 +680,16 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * The CUTOFF, C, D and SS environment variables can be used
      * to override the default behaviour.
      */
+    
+    static CutoffMechanism cutoffMethod = CutoffMechanismFactory.getMechanism();
+    static int cutoffMethodParMem = System.getenv("MEMLIMIT") == null ? -1 : Integer.parseInt(System.getenv("MEMLIMIT"));
+    
     static Runtime runtime = Runtime.getRuntime();
 	protected boolean shouldFork() {
-		if (System.getenv("MEMLIMIT") != null) {
-			int m = Integer.parseInt(System.getenv("MEMLIMIT"));
-			if (runtime.totalMemory() / (float)runtime.maxMemory() >= m/100.0) return false;
+		if (cutoffMethodParMem > -1) {
+			if (runtime.totalMemory() / (float)runtime.maxMemory() >= cutoffMethodParMem/100.0) return false;
 		}
-		
-		String cutoff = System.getenv("CUTOFF"); 
-		if (cutoff != null) {
-			if (cutoff.equalsIgnoreCase("maxtasks")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return ForkJoinTask.getPool().getQueuedTaskCount() < (c*Runtime.getRuntime().availableProcessors());
-			} else if (cutoff.equalsIgnoreCase("maxlevel")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return this.depth < c;
-			} else if (cutoff.equalsIgnoreCase("atc")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				int d = Integer.parseInt(System.getenv("D"));
-				return ForkJoinTask.getPool().getQueuedTaskCount() < (c*Runtime.getRuntime().availableProcessors()) &&
-						this.depth < d;
-			} else if (cutoff.equalsIgnoreCase("maxtasksinqueue")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return RecursiveAction.getQueuedTaskCount() < c;
-			} else if (cutoff.equalsIgnoreCase("surplus")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return ForkJoinPool.getSurplusQueuedTaskCount() <= c;
-			} else if (cutoff.equalsIgnoreCase("ss")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				return Thread.currentThread().getStackTrace().length < c;
-			} else if (cutoff.equalsIgnoreCase("mss")) {
-				int c = Integer.parseInt(System.getenv("C"));
-				int ss = Integer.parseInt(System.getenv("SS"));
-				if (Thread.currentThread().getStackTrace().length > ss) return false;
-				return ForkJoinTask.getPool().getQueuedTaskCount() < c;
-			}
-			return true;
-		} else {
-			return true;
-		}
+		return cutoffMethod.shouldFork(this);
 	}
 
     /**

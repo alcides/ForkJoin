@@ -45,7 +45,7 @@ import java.util.RandomAccess;
 
 import jsr166e.cutoffs.CutoffMechanism;
 import jsr166e.cutoffs.CutoffMechanismFactory;
-import java.util.concurrent.locks.ReentrantLock;
+import jsr166e.locks.ReentrantLock;
 
 /**
  * Abstract base class for tasks that run within a {@link ForkJoinPool}.

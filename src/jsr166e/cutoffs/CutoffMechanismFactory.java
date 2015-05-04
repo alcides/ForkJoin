@@ -19,7 +19,7 @@ public class CutoffMechanismFactory {
 	
 	public static CutoffMechanism getMechanism() {
 		if (System.getenv("CUTOFF") == null) return new SurplusMechanism();
-		return mapping.get(System.getenv("Cutoff"));
+		return mapping.get(System.getenv("CUTOFF"));
 	}
 	
 	public static int parseParam(String n, int def) {
